@@ -42,6 +42,9 @@ fun RestaurantsScreen() {
 
 @Composable
 fun RestaurantItem(item: Restaurant) {
+    val favoriteState = remember { mutableStateOf(false) }
+    val icon =  if (favoriteState.value) Icons.Filled.Favorite
+                else Icons.Filled.FavoriteBorder
     Card(
         elevation = 4.dp,
         modifier = Modifier
@@ -57,34 +60,21 @@ fun RestaurantItem(item: Restaurant) {
                 Modifier.weight(0.15f)
             )
             RestaurantDetails(item.title, item.description, Modifier.weight(0.85f))
-            FavoriteIcon(Modifier.weight(0.15f))
+            RestaurantIcon(icon,Modifier.weight(0.15f))
+                { favoriteState.value = !favoriteState.value }
         }
     }
 }
 
-@Composable
-private fun FavoriteIcon(modifier: Modifier) {
-    val favoriteState = remember { mutableStateOf(false) }
-    val icon = if (favoriteState.value) Icons.Filled.Favorite
-        else Icons.Filled.FavoriteBorder
-    Image(
-        imageVector = icon,
-        contentDescription = "Favorite Restaurant Icon",
-        modifier = modifier
-            .padding(8.dp)
-            .clickable { favoriteState.value = !favoriteState.value }
-    )
-
-
-}
 
 @Composable
-fun RestaurantIcon(icon: ImageVector, modifier: Modifier) {
+fun RestaurantIcon(icon: ImageVector, modifier: Modifier, onClick: () -> Unit = {}) {
     Image(
         imageVector = icon,
         contentDescription = "Restaurant icon",
         modifier = modifier
             .padding(8.dp)
+            .clickable { onClick() }
     )
 }
 
