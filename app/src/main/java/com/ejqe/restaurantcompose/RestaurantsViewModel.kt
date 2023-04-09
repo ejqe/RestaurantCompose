@@ -3,15 +3,47 @@ package com.ejqe.restaurantcompose
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
-class RestaurantsViewModel (private val stateHandle: SavedStateHandle): ViewModel() {
-    val state = mutableStateOf(dummyRestaurants.restoreSelections())
+class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewModel() {
+    private var restInterface: RestaurantsApiService
+    val state = mutableStateOf(emptyList<Restaurant>())
+
+    init {
+        val retrofit: Retrofit = Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl("https://restaurantcompose-6fdb4-default-rtdb.asia-southeast1.firebasedatabase.app/")
+            .build()
+        restInterface = retrofit.create(RestaurantsApiService::class.java)
+    }
 
     companion object {
         const val FAVORITES = "favorites"
     }
 
-    fun toggleFavorite(id:Int) {
+    fun getRestaurants() {
+        restInterface.getRestaurants().enqueue(
+            object : Callback<List<Restaurant>> {
+                override fun onResponse(
+                    call: Call<List<Restaurant>>,
+                    response: Response<List<Restaurant>>
+                ) {
+                    response.body()?.let { restaurants ->
+                        state.value = restaurants.restoreSelections()
+                    }
+                }
+
+                override fun onFailure(call: Call<List<Restaurant>>, t: Throwable) {
+                    t.printStackTrace()
+                }
+            })
+    }
+
+    fun toggleFavorite(id: Int) {
         val restaurants = state.value.toMutableList()
         val itemIndex = restaurants.indexOfFirst { it.id == id }
         val item = restaurants[itemIndex]
@@ -23,7 +55,7 @@ class RestaurantsViewModel (private val stateHandle: SavedStateHandle): ViewMode
 
     private fun storeSelection(item: Restaurant) {
         val savedToggled = stateHandle
-                .get<List<Int>?>(FAVORITES)
+            .get<List<Int>?>(FAVORITES)
             .orEmpty().toMutableList()
         if (item.isFavorite) savedToggled.add(item.id)
         else savedToggled.remove(item.id)
@@ -33,13 +65,12 @@ class RestaurantsViewModel (private val stateHandle: SavedStateHandle): ViewMode
 
 
     private fun List<Restaurant>.restoreSelections(): List<Restaurant> {
-        stateHandle.get<List<Int>?>(FAVORITES)?.let {
-            selectedIds ->
+        stateHandle.get<List<Int>?>(FAVORITES)?.let { selectedIds ->
             val restaurantsMap = this.associateBy { it.id }
             selectedIds.forEach { id ->
                 restaurantsMap[id]?.isFavorite = true
             }
-            return  restaurantsMap.values.toList()
+            return restaurantsMap.values.toList()
         }
         return this
     }
