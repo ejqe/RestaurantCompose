@@ -26,7 +26,6 @@ import com.ejqe.restaurantcompose.ui.theme.RestaurantComposeTheme
 @Composable
 fun RestaurantsScreen() {
     val viewModel: RestaurantsViewModel = viewModel()
-    viewModel.getRestaurants()
     LazyColumn(
         contentPadding = PaddingValues(
             vertical = 8.dp,

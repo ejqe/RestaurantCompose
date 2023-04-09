@@ -12,6 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewModel() {
     private var restInterface: RestaurantsApiService
     val state = mutableStateOf(emptyList<Restaurant>())
+    private lateinit var restaurantsCall: Call<List<Restaurant>>
 
     init {
         val retrofit: Retrofit = Retrofit.Builder()
@@ -19,14 +20,16 @@ class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewMode
             .baseUrl("https://restaurantcompose-6fdb4-default-rtdb.asia-southeast1.firebasedatabase.app/")
             .build()
         restInterface = retrofit.create(RestaurantsApiService::class.java)
+        getRestaurants()
     }
 
     companion object {
         const val FAVORITES = "favorites"
     }
 
-    fun getRestaurants() {
-        restInterface.getRestaurants().enqueue(
+    private fun getRestaurants() {
+        restaurantsCall = restInterface.getRestaurants()
+        restaurantsCall.enqueue(
             object : Callback<List<Restaurant>> {
                 override fun onResponse(
                     call: Call<List<Restaurant>>,
@@ -41,6 +44,11 @@ class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewMode
                     t.printStackTrace()
                 }
             })
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        restaurantsCall.cancel()
     }
 
     fun toggleFavorite(id: Int) {
