@@ -3,6 +3,7 @@ package com.ejqe.restaurantcompose
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -12,7 +13,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewModel() {
     private var restInterface: RestaurantsApiService
     val state = mutableStateOf(emptyList<Restaurant>())
-    private lateinit var restaurantsCall: Call<List<Restaurant>>
+    val job = Job()
+    private val scope = CoroutineScope(job + Dispatchers.IO)
 
     init {
         val retrofit: Retrofit = Retrofit.Builder()
@@ -28,27 +30,15 @@ class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewMode
     }
 
     private fun getRestaurants() {
-        restaurantsCall = restInterface.getRestaurants()
-        restaurantsCall.enqueue(
-            object : Callback<List<Restaurant>> {
-                override fun onResponse(
-                    call: Call<List<Restaurant>>,
-                    response: Response<List<Restaurant>>
-                ) {
-                    response.body()?.let { restaurants ->
-                        state.value = restaurants.restoreSelections()
-                    }
-                }
-
-                override fun onFailure(call: Call<List<Restaurant>>, t: Throwable) {
-                    t.printStackTrace()
-                }
-            })
+        scope.launch {
+            val restaurants = restInterface.getRestaurants()
+           withContext(Dispatchers.Main) { state.value = restaurants.restoreSelections() }
+        }
     }
 
     override fun onCleared() {
         super.onCleared()
-        restaurantsCall.cancel()
+        job.cancel()
     }
 
     fun toggleFavorite(id: Int) {
@@ -65,11 +55,15 @@ class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewMode
         val savedToggled = stateHandle
             .get<List<Int>?>(FAVORITES)
             .orEmpty().toMutableList()
-        if (item.isFavorite) savedToggled.add(item.id)
-        else savedToggled.remove(item.id)
+        if (item.isFavorite)
+            savedToggled.add(item.id)
+        else
+            savedToggled.remove(item.id)
         stateHandle[FAVORITES] = savedToggled
 
     }
+
+
 
 
     private fun List<Restaurant>.restoreSelections(): List<Restaurant> {
