@@ -3,6 +3,7 @@ package com.ejqe.restaurantcompose
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -13,8 +14,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewModel() {
     private var restInterface: RestaurantsApiService
     val state = mutableStateOf(emptyList<Restaurant>())
-    val job = Job()
-    private val scope = CoroutineScope(job + Dispatchers.IO)
+    private val errorHandler = CoroutineExceptionHandler{ _, exception -> exception.printStackTrace()}
 
     init {
         val retrofit: Retrofit = Retrofit.Builder()
@@ -30,15 +30,18 @@ class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewMode
     }
 
     private fun getRestaurants() {
-        scope.launch {
-            val restaurants = restInterface.getRestaurants()
-           withContext(Dispatchers.Main) { state.value = restaurants.restoreSelections() }
+        viewModelScope.launch(errorHandler) {
+            val restaurants = getRemoteRestaurants()
+            state.value = restaurants.restoreSelections()
         }
+    }
+
+    private suspend fun getRemoteRestaurants(): List<Restaurant> {
+        return withContext(Dispatchers.IO) { restInterface.getRestaurants() }
     }
 
     override fun onCleared() {
         super.onCleared()
-        job.cancel()
     }
 
     fun toggleFavorite(id: Int) {
