@@ -24,7 +24,7 @@ import com.ejqe.restaurantcompose.ui.theme.RestaurantComposeTheme
 
 
 @Composable
-fun RestaurantsScreen() {
+fun RestaurantsScreen(onItemClick: (id: Int) -> Unit = {}) {
     val viewModel: RestaurantsViewModel = viewModel()
     LazyColumn(
         contentPadding = PaddingValues(
@@ -36,15 +36,17 @@ fun RestaurantsScreen() {
         )
     ) {
         items(viewModel.state.value) { restaurant ->
-            RestaurantItem(restaurant) { id ->
-               viewModel.toggleFavorite(id)
-            }
+            RestaurantItem(restaurant,
+                onFavoriteClick =  { id -> viewModel.toggleFavorite(id) },
+                onItemClick = { id -> onItemClick(id) } )
         }
     }
 }
 
 @Composable
-fun RestaurantItem(item: Restaurant, onClick: (id: Int) -> Unit) {
+fun RestaurantItem(item: Restaurant,
+                   onFavoriteClick: (id: Int) -> Unit,
+                   onItemClick: (id: Int) -> Unit) {
 
     val icon =  if (item.isFavorite) Icons.Filled.Favorite
                 else Icons.Filled.FavoriteBorder
@@ -52,6 +54,7 @@ fun RestaurantItem(item: Restaurant, onClick: (id: Int) -> Unit) {
         elevation = 4.dp,
         modifier = Modifier
             .padding(8.dp)
+            .clickable { onItemClick(item.id) }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -64,7 +67,7 @@ fun RestaurantItem(item: Restaurant, onClick: (id: Int) -> Unit) {
             )
             RestaurantDetails(item.title, item.description, Modifier.weight(0.85f), Alignment.Start)
             RestaurantIcon(icon,Modifier.weight(0.15f))
-                { onClick(item.id) }
+                { onFavoriteClick(item.id) }
         }
     }
 }
