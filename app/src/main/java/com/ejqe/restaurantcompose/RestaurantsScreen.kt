@@ -62,7 +62,7 @@ fun RestaurantItem(item: Restaurant, onClick: (id: Int) -> Unit) {
                 Icons.Filled.Place,
                 Modifier.weight(0.15f)
             )
-            RestaurantDetails(item.title, item.description, Modifier.weight(0.85f))
+            RestaurantDetails(item.title, item.description, Modifier.weight(0.85f), Alignment.Start)
             RestaurantIcon(icon,Modifier.weight(0.15f))
                 { onClick(item.id) }
         }
@@ -82,9 +82,11 @@ fun RestaurantIcon(icon: ImageVector, modifier: Modifier, onClick: () -> Unit = 
 }
 
 @Composable
-fun RestaurantDetails(title: String, description: String, modifier: Modifier) {
+fun RestaurantDetails(title: String, description: String, modifier: Modifier,
+                      horizontalAlignment: Alignment.Horizontal) {
     Column(
-        modifier = modifier
+        modifier = modifier,
+        horizontalAlignment = horizontalAlignment
     ) {
         Text(
             text = title,
@@ -105,7 +107,8 @@ fun RestaurantDetails(title: String, description: String, modifier: Modifier) {
 @Composable
 fun DefaultPreview() {
     RestaurantComposeTheme {
-        RestaurantsScreen()
+//        RestaurantsScreen()
+        RestaurantDetailsScreen()
     }
 }
 
