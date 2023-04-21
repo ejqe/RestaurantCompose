@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.net.ConnectException
 import java.net.UnknownHostException
 
-class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewModel() {
+class RestaurantsViewModel() : ViewModel() {
     private var restInterface: RestaurantsApiService
     private var restaurantsDao = RestaurantsDb.getDaoInstance(RestaurantsApplication.getAppContext())
     val state = mutableStateOf(emptyList<Restaurant>())
@@ -26,14 +26,10 @@ class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewMode
         getRestaurants()
     }
 
-    companion object {
-        const val FAVORITES = "favorites"
-    }
 
     private fun getRestaurants() {
         viewModelScope.launch(errorHandler) {
-            val restaurants = getAllRestaurants()
-            state.value = restaurants.restoreSelections()
+            state.value = getAllRestaurants()
         }
     }
 
@@ -74,46 +70,14 @@ class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewMode
             restaurantsDao.getAll()
         }
 
-    fun toggleFavorite(id: Int) {
-        val restaurants = state.value.toMutableList()
-        val itemIndex = restaurants.indexOfFirst { it.id == id }
-        val item = restaurants[itemIndex]
-        restaurants[itemIndex] =
-            item.copy(isFavorite = !item.isFavorite)
-        storeSelection(restaurants[itemIndex])
-
-        viewModelScope.launch {
-            val updatedRestaurants = toggleFavoriteRestaurant(id, item.isFavorite)
+    fun toggleFavorite(id: Int, oldValue: Boolean) {
+        viewModelScope.launch(errorHandler) {
+            val updatedRestaurants = toggleFavoriteRestaurant(id, oldValue)
             state.value = updatedRestaurants
         }
     }
 
-    private fun storeSelection(item: Restaurant) {
-        val savedToggled = stateHandle
-            .get<List<Int>?>(FAVORITES)
-            .orEmpty().toMutableList()
-        if (item.isFavorite)
-            savedToggled.add(item.id)
-        else
-            savedToggled.remove(item.id)
-        stateHandle[FAVORITES] = savedToggled
 
-    }
-
-
-
-
-    private fun List<Restaurant>.restoreSelections(): List<Restaurant> {
-        stateHandle.get<List<Int>?>(FAVORITES)?.let { selectedIds ->
-            val restaurantsMap = this.associateBy { it.id }.toMutableMap()
-            selectedIds.forEach { id ->
-                val restaurant = restaurantsMap[id] ?: return@forEach
-                restaurantsMap[id] = restaurant.copy(isFavorite = true)
-            }
-            return restaurantsMap.values.toList()
-        }
-        return this
-    }
 
 
 }
