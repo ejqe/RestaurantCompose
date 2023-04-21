@@ -40,23 +40,39 @@ class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewMode
     private suspend fun getAllRestaurants(): List<Restaurant> {
         return withContext(Dispatchers.IO) {
             try {
-                val restaurants = restInterface.getRestaurants()
-                restaurantsDao.addAll(restaurants)
-                return@withContext restaurants
+                refreshCache()
             } catch (e: Exception) {
                 when (e) {
                     is UnknownHostException, is ConnectException, is HttpException -> {
-                        return@withContext restaurantsDao.getAll()
+                        if (restaurantsDao.getAll().isEmpty())
+                            throw Exception(
+                                "Something went wrong." + "We have no data."
+                            )
                     }
                     else -> throw e
                 }
             }
+            return@withContext restaurantsDao.getAll()
         }
     }
 
+    private suspend fun refreshCache() {
+        val remoteRestaurants = restInterface.getRestaurants()
+        val favoriteRestaurants = restaurantsDao.getAllFavorited()
+        restaurantsDao.addAll(remoteRestaurants)
+        restaurantsDao.updateAll(
+            favoriteRestaurants.map { PartialRestaurant(it.id, true) })
+
+    }
     override fun onCleared() {
         super.onCleared()
     }
+
+    private suspend fun toggleFavoriteRestaurant(id: Int, oldValue: Boolean) =
+        withContext(Dispatchers.IO) {
+            restaurantsDao.update(PartialRestaurant(id = id, isFavorite = !oldValue))
+            restaurantsDao.getAll()
+        }
 
     fun toggleFavorite(id: Int) {
         val restaurants = state.value.toMutableList()
@@ -65,7 +81,11 @@ class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewMode
         restaurants[itemIndex] =
             item.copy(isFavorite = !item.isFavorite)
         storeSelection(restaurants[itemIndex])
-        state.value = restaurants
+
+        viewModelScope.launch {
+            val updatedRestaurants = toggleFavoriteRestaurant(id, item.isFavorite)
+            state.value = updatedRestaurants
+        }
     }
 
     private fun storeSelection(item: Restaurant) {
@@ -85,9 +105,10 @@ class RestaurantsViewModel(private val stateHandle: SavedStateHandle) : ViewMode
 
     private fun List<Restaurant>.restoreSelections(): List<Restaurant> {
         stateHandle.get<List<Int>?>(FAVORITES)?.let { selectedIds ->
-            val restaurantsMap = this.associateBy { it.id }
+            val restaurantsMap = this.associateBy { it.id }.toMutableMap()
             selectedIds.forEach { id ->
-                restaurantsMap[id]?.isFavorite = true
+                val restaurant = restaurantsMap[id] ?: return@forEach
+                restaurantsMap[id] = restaurant.copy(isFavorite = true)
             }
             return restaurantsMap.values.toList()
         }
