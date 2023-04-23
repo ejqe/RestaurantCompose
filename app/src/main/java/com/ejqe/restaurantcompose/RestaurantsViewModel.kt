@@ -1,82 +1,44 @@
 package com.ejqe.restaurantcompose
 
+
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
-import retrofit2.HttpException
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.net.ConnectException
-import java.net.UnknownHostException
 
-class RestaurantsViewModel() : ViewModel() {
-    private var restInterface: RestaurantsApiService
-    private var restaurantsDao = RestaurantsDb.getDaoInstance(RestaurantsApplication.getAppContext())
-    val state = mutableStateOf(RestaurantsScreenState(restaurant = listOf(), isLoading = true))
-    private val errorHandler = CoroutineExceptionHandler{ _, exception -> exception.printStackTrace()}
+class RestaurantsViewModel : ViewModel() {
 
-    init {
-        val retrofit: Retrofit = Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl("https://restaurantcompose-6fdb4-default-rtdb.asia-southeast1.firebasedatabase.app/")
-            .build()
-        restInterface = retrofit.create(RestaurantsApiService::class.java)
-        getRestaurants()
-    }
+    private val repository = RestaurantsRepository()
+    private val _state = mutableStateOf(RestaurantsScreenState(restaurant = listOf(), isLoading = true))
+    val state: State<RestaurantsScreenState> get() = _state //backing property
+    private val errorHandler = CoroutineExceptionHandler{
+            _, exception -> exception.printStackTrace()
+            _state.value = _state.value.copy(error = exception.message, isLoading = false)}
+
+    init { getRestaurants() }
 
 
     private fun getRestaurants() {
         viewModelScope.launch(errorHandler) {
-            val restaurants = getAllRestaurants()
-            state.value = state.value.copy(restaurant = restaurants, isLoading = false)
+            val restaurants = repository.getAllRestaurants()
+            _state.value = _state.value.copy(restaurant = restaurants, isLoading = false)
+        }
+    }
+    fun toggleFavorite(id: Int, oldValue: Boolean) {
+        viewModelScope.launch(errorHandler) {
+            val updatedRestaurants = repository.toggleFavoriteRestaurant(id, oldValue)
+            _state.value = _state.value.copy(restaurant = updatedRestaurants)
         }
     }
 
-    private suspend fun getAllRestaurants(): List<Restaurant> {
-        return withContext(Dispatchers.IO) {
-            try {
-                refreshCache()
-            } catch (e: Exception) {
-                when (e) {
-                    is UnknownHostException, is ConnectException, is HttpException -> {
-                        if (restaurantsDao.getAll().isEmpty())
-                            throw Exception(
-                                "Something went wrong." + "We have no data."
-                            )
-                    }
-                    else -> throw e
-                }
-            }
-            return@withContext restaurantsDao.getAll()
-        }
-    }
 
-    private suspend fun refreshCache() {
-        val remoteRestaurants = restInterface.getRestaurants()
-        val favoriteRestaurants = restaurantsDao.getAllFavorited()
-        restaurantsDao.addAll(remoteRestaurants)
-        restaurantsDao.updateAll(
-            favoriteRestaurants.map { PartialRestaurant(it.id, true) })
-
-    }
     override fun onCleared() {
         super.onCleared()
     }
 
-    private suspend fun toggleFavoriteRestaurant(id: Int, oldValue: Boolean) =
-        withContext(Dispatchers.IO) {
-            restaurantsDao.update(PartialRestaurant(id = id, isFavorite = !oldValue))
-            restaurantsDao.getAll()
-        }
 
-    fun toggleFavorite(id: Int, oldValue: Boolean) {
-        viewModelScope.launch(errorHandler) {
-            val updatedRestaurants = toggleFavoriteRestaurant(id, oldValue)
-            state.value = state.value.copy(restaurant = updatedRestaurants)
-        }
-    }
+
 
 
 
