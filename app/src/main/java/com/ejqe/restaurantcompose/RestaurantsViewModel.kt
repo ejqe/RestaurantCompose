@@ -8,8 +8,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 
 class RestaurantsViewModel : ViewModel() {
-
-    private val repository = RestaurantsRepository()
+    private val getInitialRestaurantsUseCase = GetInitialRestaurantsUseCase()
+    private val toggleRestaurantUseCase = ToggleRestaurantUseCase()
     private val _state = mutableStateOf(RestaurantsScreenState(restaurant = listOf(), isLoading = true))
     val state: State<RestaurantsScreenState> get() = _state //backing property
     private val errorHandler = CoroutineExceptionHandler{
@@ -21,13 +21,13 @@ class RestaurantsViewModel : ViewModel() {
 
     private fun getRestaurants() {
         viewModelScope.launch(errorHandler) {
-            val restaurants = repository.getAllRestaurants()
+            val restaurants = getInitialRestaurantsUseCase()
             _state.value = _state.value.copy(restaurant = restaurants, isLoading = false)
         }
     }
     fun toggleFavorite(id: Int, oldValue: Boolean) {
         viewModelScope.launch(errorHandler) {
-            val updatedRestaurants = repository.toggleFavoriteRestaurant(id, oldValue)
+            val updatedRestaurants = toggleRestaurantUseCase(id, oldValue)
             _state.value = _state.value.copy(restaurant = updatedRestaurants)
         }
     }
