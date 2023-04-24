@@ -3,6 +3,7 @@ package com.ejqe.restaurantcompose.restaurants.data
 import com.ejqe.restaurantcompose.RestaurantsApplication
 import com.ejqe.restaurantcompose.restaurants.data.local.LocalRestaurant
 import com.ejqe.restaurantcompose.restaurants.data.local.PartialLocalRestaurant
+import com.ejqe.restaurantcompose.restaurants.data.local.RestaurantsDao
 import com.ejqe.restaurantcompose.restaurants.data.local.RestaurantsDb
 import com.ejqe.restaurantcompose.restaurants.data.remote.RestaurantsApiService
 import com.ejqe.restaurantcompose.restaurants.domain.Restaurant
@@ -13,18 +14,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.ConnectException
 import java.net.UnknownHostException
+import javax.inject.Inject
 
-class RestaurantsRepository {
-    private var restInterface: RestaurantsApiService =
-        Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl("https://restaurantcompose-6fdb4-default-rtdb.asia-southeast1.firebasedatabase.app/")
-            .build()
-            .create(RestaurantsApiService::class.java)
-
-    private var restaurantsDao =
-        RestaurantsDb.getDaoInstance(RestaurantsApplication.getAppContext())
-
+class RestaurantsRepository @Inject constructor(
+    private var restInterface: RestaurantsApiService,
+    private var restaurantsDao: RestaurantsDao
+    ) {
 
     suspend fun toggleFavoriteRestaurant(id: Int, value: Boolean) =
         withContext(Dispatchers.IO) {
