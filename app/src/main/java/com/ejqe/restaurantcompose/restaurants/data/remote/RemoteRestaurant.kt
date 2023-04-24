@@ -1,4 +1,4 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.data.remote
 
 import com.google.gson.annotations.SerializedName
 

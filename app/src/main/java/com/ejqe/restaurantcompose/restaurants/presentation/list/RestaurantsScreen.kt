@@ -1,4 +1,4 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.presentation.list
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -10,20 +10,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ejqe.restaurantcompose.restaurants.domain.Restaurant
 import com.ejqe.restaurantcompose.ui.theme.RestaurantComposeTheme
 
 
 @Composable
-fun RestaurantsScreen(onItemClick: (id: Int) -> Unit = {}) {
-    val viewModel: RestaurantsViewModel = viewModel()
-    val state = viewModel.state.value
+fun RestaurantsScreen(
+    state: RestaurantsScreenState,
+    onItemClick: (id: Int) -> Unit,
+    onFavoriteClick: (id: Int, oldValue: Boolean) -> Unit
+) {
 
     Box (
         contentAlignment = Alignment.Center,
@@ -38,9 +41,11 @@ fun RestaurantsScreen(onItemClick: (id: Int) -> Unit = {}) {
             )
         ) {
             items(state.restaurant) { restaurant ->
-                RestaurantItem(restaurant,
-                    onFavoriteClick = { id, oldValue -> viewModel.toggleFavorite(id, oldValue) },
-                    onItemClick = { id -> onItemClick(id) })
+                RestaurantItem(
+                    restaurant,
+                    onItemClick = { id -> onItemClick(id) },
+                    onFavoriteClick = { id, oldValue -> onFavoriteClick(id, oldValue) }
+                )
             }
         }
         if(state.isLoading) CircularProgressIndicator()
@@ -115,8 +120,13 @@ fun RestaurantDetails(title: String, description: String, modifier: Modifier,
 @Composable
 fun DefaultPreview() {
     RestaurantComposeTheme {
-//        RestaurantsScreen()
-        RestaurantDetailsScreen()
+        RestaurantsScreen(
+            RestaurantsScreenState(restaurant = listOf(), isLoading = true),
+                {},
+                { _, _ ->}
+        )
+
+
     }
 }
 

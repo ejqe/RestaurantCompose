@@ -1,4 +1,4 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.domain
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

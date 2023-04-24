@@ -1,10 +1,12 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.presentation.list
 
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ejqe.restaurantcompose.restaurants.domain.GetInitialRestaurantsUseCase
+import com.ejqe.restaurantcompose.restaurants.domain.ToggleRestaurantUseCase
 import kotlinx.coroutines.*
 
 class RestaurantsViewModel : ViewModel() {

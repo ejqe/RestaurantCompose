@@ -1,4 +1,4 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.data.local
 
 import android.content.Context
 import androidx.room.Database

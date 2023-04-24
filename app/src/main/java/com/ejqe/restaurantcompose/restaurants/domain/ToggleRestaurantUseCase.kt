@@ -1,4 +1,7 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.domain
+
+import com.ejqe.restaurantcompose.restaurants.data.RestaurantsRepository
+import com.ejqe.restaurantcompose.restaurants.domain.GetSortedRestaurantsUseCase
 
 class ToggleRestaurantUseCase {
     private val repository: RestaurantsRepository = RestaurantsRepository()

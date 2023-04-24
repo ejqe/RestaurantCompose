@@ -1,4 +1,6 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.domain
+
+import com.ejqe.restaurantcompose.restaurants.data.RestaurantsRepository
 
 class GetSortedRestaurantsUseCase {
     private val repository: RestaurantsRepository = RestaurantsRepository()

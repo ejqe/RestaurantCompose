@@ -1,6 +1,8 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.data.local
 
 import androidx.room.*
+import com.ejqe.restaurantcompose.restaurants.data.local.LocalRestaurant
+import com.ejqe.restaurantcompose.restaurants.data.local.PartialLocalRestaurant
 
 @Dao
 interface RestaurantsDao {

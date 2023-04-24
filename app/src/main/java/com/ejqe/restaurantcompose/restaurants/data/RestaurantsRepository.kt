@@ -1,5 +1,11 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.data
 
+import com.ejqe.restaurantcompose.RestaurantsApplication
+import com.ejqe.restaurantcompose.restaurants.data.local.LocalRestaurant
+import com.ejqe.restaurantcompose.restaurants.data.local.PartialLocalRestaurant
+import com.ejqe.restaurantcompose.restaurants.data.local.RestaurantsDb
+import com.ejqe.restaurantcompose.restaurants.data.remote.RestaurantsApiService
+import com.ejqe.restaurantcompose.restaurants.domain.Restaurant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException

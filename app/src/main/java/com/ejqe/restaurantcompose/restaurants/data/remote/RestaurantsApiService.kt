@@ -1,6 +1,6 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.data.remote
 
-import retrofit2.Call
+import com.ejqe.restaurantcompose.restaurants.data.remote.RemoteRestaurant
 import retrofit2.http.GET
 import retrofit2.http.Query
 

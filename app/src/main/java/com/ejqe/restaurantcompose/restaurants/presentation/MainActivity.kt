@@ -1,15 +1,19 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.ejqe.restaurantcompose.restaurants.presentation.details.RestaurantDetailsScreen
+import com.ejqe.restaurantcompose.restaurants.presentation.list.RestaurantsScreen
+import com.ejqe.restaurantcompose.restaurants.presentation.list.RestaurantsViewModel
 import com.ejqe.restaurantcompose.ui.theme.RestaurantComposeTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,7 +33,12 @@ class MainActivity : ComponentActivity() {
         val navController = rememberNavController()
         NavHost(navController = navController, startDestination = "restaurants") {
             composable(route = "restaurants") {
-                RestaurantsScreen { id -> navController.navigate("restaurants/$id") }
+                val viewModel: RestaurantsViewModel = viewModel()
+                RestaurantsScreen(
+                    state = viewModel.state.value,
+                    onItemClick = { id -> navController.navigate("restaurants/$id")},
+                    onFavoriteClick = { id, oldValue -> viewModel.toggleFavorite(id, oldValue)}
+                )
             }
             composable(
                 route = "restaurants/{restaurant_id}",

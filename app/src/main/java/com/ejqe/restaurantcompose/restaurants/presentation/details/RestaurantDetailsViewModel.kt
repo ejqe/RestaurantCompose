@@ -1,9 +1,11 @@
-package com.ejqe.restaurantcompose
+package com.ejqe.restaurantcompose.restaurants.presentation.details
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ejqe.restaurantcompose.restaurants.data.remote.RestaurantsApiService
+import com.ejqe.restaurantcompose.restaurants.domain.Restaurant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
