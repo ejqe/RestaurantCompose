@@ -8,7 +8,7 @@ interface RestaurantsDao {
     suspend fun getAll(): List<LocalRestaurant>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addAll(restaurant: List<LocalRestaurant>)  //Save to Room
+    suspend fun addAll(restaurants: List<LocalRestaurant>)  //Save to Room
 
     @Update(entity = LocalRestaurant::class)
     suspend fun update(partialLocalRestaurant: PartialLocalRestaurant)

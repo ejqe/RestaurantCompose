@@ -26,6 +26,7 @@ class RestaurantsRepository @Inject constructor(
             restaurantsDao.update(PartialLocalRestaurant(id = id, isFavorite = value))
         }
 
+    //Get from Remote
     suspend fun loadRestaurants() {
         return withContext(Dispatchers.IO) {
             try {
@@ -44,6 +45,7 @@ class RestaurantsRepository @Inject constructor(
         }
     }
 
+    //Get from Local
     suspend fun getRestaurants(): List<Restaurant> {
         return withContext(Dispatchers.IO) {
             return@withContext restaurantsDao.getAll().map {
@@ -52,6 +54,7 @@ class RestaurantsRepository @Inject constructor(
         }
     }
 
+    //Convert Remote to Local
     private suspend fun refreshCache() {
         val remoteRestaurants = restInterface.getRestaurants()
         val favoriteRestaurants = restaurantsDao.getAllFavorited()
