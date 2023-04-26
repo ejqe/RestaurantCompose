@@ -6,7 +6,9 @@ import com.ejqe.restaurantcompose.restaurants.data.local.PartialLocalRestaurant
 import com.ejqe.restaurantcompose.restaurants.data.local.RestaurantsDao
 import com.ejqe.restaurantcompose.restaurants.data.local.RestaurantsDb
 import com.ejqe.restaurantcompose.restaurants.data.remote.RestaurantsApiService
+import com.ejqe.restaurantcompose.restaurants.di.IoDispatcher
 import com.ejqe.restaurantcompose.restaurants.domain.Restaurant
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
@@ -18,17 +20,18 @@ import javax.inject.Inject
 
 class RestaurantsRepository @Inject constructor(
     private var restInterface: RestaurantsApiService,
-    private var restaurantsDao: RestaurantsDao
+    private var restaurantsDao: RestaurantsDao,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher
     ) {
 
     suspend fun toggleFavoriteRestaurant(id: Int, value: Boolean) =
-        withContext(Dispatchers.IO) {
+        withContext(dispatcher) {
             restaurantsDao.update(PartialLocalRestaurant(id = id, isFavorite = value))
         }
 
     //Get from Remote
     suspend fun loadRestaurants() {
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatcher) {
             try {
                 refreshCache()
             } catch (e: Exception) {
@@ -47,7 +50,7 @@ class RestaurantsRepository @Inject constructor(
 
     //Get from Local
     suspend fun getRestaurants(): List<Restaurant> {
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatcher) {
             return@withContext restaurantsDao.getAll().map {
                 Restaurant(it.id, it.title, it.description, it.isFavorite)
             }
