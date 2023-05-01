@@ -38,8 +38,6 @@ fun RestaurantsScreen(
         LazyColumn(
             contentPadding = PaddingValues(
                 vertical = 8.dp,
-
-
                 horizontal = 8.dp
             )
         ) {
